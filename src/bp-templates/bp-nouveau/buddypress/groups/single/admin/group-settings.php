@@ -68,10 +68,16 @@ if ( $group_types ) : ?>
 
 		<p tabindex="0"><?php esc_html_e( 'Select the types this group should be a part of.', 'buddypress' ); ?></p>
 
-		<?php foreach ( $group_types as $type ) : ?>
+		<?php foreach ( $group_types as $type ) :
+			if ( bp_is_group_create() ) {
+							$checked = checked( true, ! empty( $type->create_screen_checked ), false );
+						} else {
+							$checked = checked( bp_groups_has_group_type( bp_get_current_group_id(), $type->name ), true, false );
+						}
+			?>
 			<div class="checkbox">
 				<label for="<?php printf( 'group-type-%s', $type->name ); ?>">
-					<input type="checkbox" name="group-types[]" id="<?php printf( 'group-type-%s', $type->name ); ?>" value="<?php echo esc_attr( $type->name ); ?>" <?php checked( bp_groups_has_group_type( bp_get_current_group_id(), $type->name ) ); ?>/> <?php echo esc_html( $type->labels['name'] ); ?>
+					<input type="checkbox" name="group-types[]" id="<?php printf( 'group-type-%s', $type->name ); ?>" value="<?php echo esc_attr( $type->name ); ?>" <?php echo $checked; ?>/> <?php echo esc_html( $type->labels['name'] ); ?>
 					<?php
 					if ( ! empty( $type->description ) ) {
 						printf( '&ndash; %s', '<span class="bp-group-type-desc">' . esc_html( $type->description ) . '</span>' );
