@@ -685,11 +685,14 @@ class BP_Members_Signup_REST_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function activate_item( $request ) {
+		// Force 'view' context to prevent sensitive data exposure during activation.
+		$request->set_param( 'context', 'view' );
+
 		// Get the activation key.
 		$activation_key = $request->get_param( 'activation_key' );
 
 		// Get the signup to activate thanks to the activation key.
-		$signup    = $this->get_signup_object( $activation_key );
+		$signup    = $this->get_signup_object_by_field( $activation_key, 'activation_key' );
 		$activated = bp_core_activate_signup( $activation_key );
 
 		if ( ! $activated ) {
@@ -739,8 +742,19 @@ class BP_Members_Signup_REST_Controller extends WP_REST_Controller {
 		// Get the activation key.
 		$activation_key = $request->get_param( 'activation_key' );
 
+		// Block numeric IDs to prevent enumeration attacks.
+		if ( is_numeric( $activation_key ) ) {
+			return new WP_Error(
+				'bp_rest_invalid_activation_format',
+				__( 'Invalid activation key format.', 'buddypress' ),
+				array(
+					'status' => 400,
+				)
+			);
+		}
+
 		// Check the activation key is valid.
-		if ( $this->get_signup_object( $activation_key ) ) {
+		if ( $this->get_signup_object_by_field( $activation_key, 'activation_key' ) ) {
 			$retval = true;
 		}
 
@@ -971,6 +985,48 @@ class BP_Members_Signup_REST_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $signups['signups'] ) ) {
 			return reset( $signups['signups'] );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get signup object by specific field with security validation.
+	 *
+	 * @since 14.3.5
+	 *
+	 * @param int|string $identifier Signup identifier.
+	 * @param string $field Signup lookup field ('id', 'email', or 'activation_key').
+	 * @return BP_Signup|false
+	 */
+	public function get_signup_object_by_field( $identifier, $field ) {
+		$signup_args = array();
+
+		if ( 'id' === $field && is_numeric( $identifier ) ) {
+			$signup_args['include'] = array( intval( $identifier ) );
+		} elseif ( 'email' === $field && is_email( $identifier ) ) {
+			$signup_args['usersearch'] = $identifier;
+		} elseif ( 'activation_key' === $field ) {
+			// Block numeric IDs to prevent enumeration attacks.
+			if ( is_numeric( $identifier ) ) {
+				return false;
+			}
+
+			// Basic validation: minimum length check.
+			if ( empty( $identifier ) || strlen( $identifier ) < 10 ) {
+				return false;
+			}
+
+			$signup_args['activation_key'] = $identifier;
+		}
+
+		if ( ! empty( $signup_args ) ) {
+			// Get signups.
+			$signups = \BP_Signup::get( $signup_args );
+
+			if ( ! empty( $signups['signups'] ) ) {
+				return reset( $signups['signups'] );
+			}
 		}
 
 		return false;
