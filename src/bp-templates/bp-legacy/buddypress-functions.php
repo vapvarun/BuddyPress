@@ -84,11 +84,8 @@ class BP_Legacy extends BP_Theme_Compat {
 		add_action( 'bp_enqueue_community_scripts', array( $this, 'enqueue_scripts'  ) ); // Enqueue theme JS
 		add_action( 'bp_enqueue_community_scripts', array( $this, 'localize_scripts' ) ); // Enqueue theme script localization
 
-		/** This filter is documented in bp-core/bp-core-dependency.php */
-		if ( is_buddypress() || ! apply_filters( 'bp_enqueue_assets_in_bp_pages_only', true ) ) {
-			// Body no-js class.
-			add_filter( 'body_class', array( $this, 'add_nojs_body_class' ), 20, 1 );
-		}
+		// Body no-js class.
+		add_filter( 'body_class', array( $this, 'add_nojs_body_class' ), 20, 1 );
 
 		/** Buttons ***********************************************************/
 
@@ -480,6 +477,11 @@ class BP_Legacy extends BP_Theme_Compat {
 	 * @return array $classes
 	 */
 	public function add_nojs_body_class( $classes ) {
+		/** This filter is documented in bp-core/bp-core-dependency.php */
+		if ( ! is_buddypress() && apply_filters( 'bp_enqueue_assets_in_bp_pages_only', true ) ) {
+			return $classes;
+		}
+
 		if ( ! in_array( 'no-js', $classes ) )
 			$classes[] = 'no-js';
 
