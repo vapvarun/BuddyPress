@@ -1014,6 +1014,25 @@ class BP_Members_Component extends BP_Component {
 				}
 
 				if ( ! $single_item_action || ! $screen_function || ! is_callable( $screen_function ) ) {
+					/*
+					 * Before returning 404, check if this is a valid nav item that exists
+					 * but the user doesn't have access to. In that case, redirect to login
+					 * instead of showing 404. This fixes the issue where non-logged-in users
+					 * clicking invitation links get 404 instead of login redirect.
+					 *
+					 * @since 15.0.0
+					 * @see https://buddypress.trac.wordpress.org/ticket/8712
+					 */
+					if ( $single_item_action && ! is_user_logged_in() ) {
+						$sub_nav_item = $this->nav->get( $single_item_component . '/' . $single_item_action );
+
+						// If nav item exists but user doesn't have access, redirect to login.
+						if ( $sub_nav_item && isset( $sub_nav_item->user_has_access ) && false === $sub_nav_item->user_has_access ) {
+							bp_core_no_access();
+							return;
+						}
+					}
+
 					bp_do_404();
 					return;
 				}
@@ -1029,6 +1048,22 @@ class BP_Members_Component extends BP_Component {
 				);
 
 				if ( ! $sub_nav ) {
+					/*
+					 * Before returning 404, check if this is a valid nav item that exists
+					 * but the user doesn't have access to. Redirect to login instead of 404.
+					 *
+					 * @since 15.0.0
+					 * @see https://buddypress.trac.wordpress.org/ticket/8712
+					 */
+					if ( $single_item_action && ! is_user_logged_in() ) {
+						$nav_item = $this->nav->get( $single_item_component . '/' . $single_item_action );
+
+						if ( $nav_item && isset( $nav_item->user_has_access ) && false === $nav_item->user_has_access ) {
+							bp_core_no_access();
+							return;
+						}
+					}
+
 					bp_do_404();
 					return;
 				}
