@@ -726,8 +726,12 @@ function bp_group_class( $classes = array() ) {
 			$classes[] = 'bp-single-group';
 		}
 
-		// Group type - public, private, hidden.
-		$classes[] = sanitize_key( $groups_template->group->status );
+		// Group status - public, private, hidden.
+		$group_status = sanitize_key( $groups_template->group->status );
+		$classes[]    = 'bp-group-status-' . $group_status;
+
+		// @todo Deprecated. Remove non-prefixed status class in a future major version.
+		$classes[] = $group_status;
 
 		// Add current group types.
 		if ( $group_types = bp_groups_get_group_type( bp_get_group_id(), false ) ) {
