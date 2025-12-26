@@ -170,15 +170,18 @@ class BP_Settings_Component extends BP_Component {
 			'user_has_access_callback' => 'bp_core_can_edit_settings',
 		);
 
-		$sub_nav[] = array(
-			'name'                     => _x( 'Profile Visibility', 'Profile settings sub nav', 'buddypress' ),
-			'slug'                     => 'profile',
-			'parent_slug'              => $slug,
-			'screen_function'          => 'bp_xprofile_screen_settings',
-			'position'                 => 30,
-			'user_has_access'          => false,
-			'user_has_access_callback' => 'bp_core_can_edit_settings',
-		);
+		// Only add Profile Visibility subnav if Extended Profiles (xprofile) is active.
+		if ( bp_is_active( 'xprofile' ) ) {
+			$sub_nav[] = array(
+				'name'                     => _x( 'Profile Visibility', 'Profile settings sub nav', 'buddypress' ),
+				'slug'                     => 'profile',
+				'parent_slug'              => $slug,
+				'screen_function'          => 'bp_xprofile_screen_settings',
+				'position'                 => 30,
+				'user_has_access'          => false,
+				'user_has_access_callback' => 'bp_core_can_edit_settings',
+			);
+		}
 
 		$sub_nav[] = array(
 			'name'                     => __( 'Capabilities', 'buddypress' ),
