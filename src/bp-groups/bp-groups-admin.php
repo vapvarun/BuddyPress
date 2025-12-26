@@ -60,6 +60,11 @@ function bp_groups_admin_types_menu() {
 		return;
 	}
 
+	// Bail if the bp_group_type taxonomy has been filtered out.
+	if ( ! taxonomy_exists( 'bp_group_type' ) ) {
+		return;
+	}
+
 	if ( bp_is_network_activated() && ! bp_is_multiblog_mode() && is_network_admin() ) {
 		// Adds a 'bp-groups' submenu to go to the root blog Group types screen.
 		$group_type_admin_url = add_query_arg( 'taxonomy', 'bp_group_type', get_admin_url( bp_get_root_blog_id(), 'edit-tags.php' ) );
