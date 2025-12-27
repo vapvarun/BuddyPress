@@ -179,7 +179,21 @@ function bp_core_load_template( $templates ) {
 		 *
 		 * @param string $located_template Template found to be loaded.
 		 */
-		load_template( apply_filters( 'bp_load_template', $located_template ) );
+		$template_to_load = apply_filters( 'bp_load_template', $located_template );
+
+		/*
+		 * Fires the wp_before_include_template action.
+		 *
+		 * WordPress 6.9 introduced this hook in template-loader.php to enable
+		 * output buffering for block style hoisting. Since BuddyPress bypasses
+		 * template-loader.php when loading templates directly, we need to
+		 * trigger this action to enable the optimization.
+		 *
+		 * @since 14.5.0
+		 */
+		do_action( 'wp_before_include_template', $template_to_load );
+
+		load_template( $template_to_load );
 
 		/**
 		 * Fires after the loading of a located template file.
